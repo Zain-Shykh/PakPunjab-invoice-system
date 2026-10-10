@@ -250,39 +250,116 @@ function updateSyncStatus(patch: Partial<FirebaseSyncStatus>) {
 }
 
 let isFirebaseSubscribed = false;
+const pendingCloudWrites = new Map<string, unknown>();
+const pendingCloudDeletes = new Set<string>();
+const cloudWriteQueues = new Map<string, Promise<void>>();
+
+function cloudRecordKey(collectionName: string, docId: string): string {
+  return `${collectionName}/${docId}`;
+}
+
+function mergeCloudCollection<T extends { id: string }>(
+  storageKey: string,
+  collectionName: string,
+  cloudRecords: T[]
+): void {
+  const localRecords = getStorageItem<T[]>(storageKey, []);
+  const recordsById = new Map(cloudRecords.map((record) => [record.id, record]));
+
+  for (const [key, record] of pendingCloudWrites) {
+    if (key.startsWith(`${collectionName}/`)) {
+      const id = key.slice(collectionName.length + 1);
+      const cloudRecord = recordsById.get(id);
+      if (cloudRecord && JSON.stringify(cloudRecord) === JSON.stringify(record)) {
+        pendingCloudWrites.delete(key);
+        continue;
+      }
+      recordsById.set(id, record as T);
+    }
+  }
+
+  for (const key of pendingCloudDeletes) {
+    if (key.startsWith(`${collectionName}/`)) {
+      const id = key.slice(collectionName.length + 1);
+      if (!recordsById.has(id)) {
+        pendingCloudDeletes.delete(key);
+      } else {
+        recordsById.delete(id);
+      }
+    }
+  }
+
+  setStorageItem(storageKey, Array.from(recordsById.values()));
+}
+
+function mergeCloudDocument<T>(
+  storageKey: string,
+  collectionName: string,
+  docId: string,
+  cloudData: T
+): void {
+  const key = cloudRecordKey(collectionName, docId);
+  const pendingData = pendingCloudWrites.get(key);
+  if (pendingData && JSON.stringify(pendingData) !== JSON.stringify(cloudData)) {
+    setStorageItem(storageKey, pendingData as T);
+    return;
+  }
+  if (pendingData) pendingCloudWrites.delete(key);
+  setStorageItem(storageKey, cloudData);
+}
 
 // ---------------- FIREBASE ASYNC WRITERS ----------------
 async function syncDocToFirestore(collectionName: string, docId: string, data: any) {
-  try {
-    const docRef = doc(firestore, collectionName, docId);
-    await setDoc(docRef, data, { merge: true });
-    updateSyncStatus({
-      isConnected: true,
-      lastSyncedAt: new Date().toISOString(),
-      statusText: 'Cloud Synced',
-      error: null,
+  const key = cloudRecordKey(collectionName, docId);
+  pendingCloudWrites.set(key, data);
+  pendingCloudDeletes.delete(key);
+  const previousWrite = cloudWriteQueues.get(key) || Promise.resolve();
+  const currentWrite = previousWrite
+    .catch(() => undefined)
+    .then(async () => {
+      try {
+        const docRef = doc(firestore, collectionName, docId);
+        await setDoc(docRef, data, { merge: true });
+        updateSyncStatus({
+          isConnected: true,
+          lastSyncedAt: new Date().toISOString(),
+          statusText: 'Cloud Synced',
+          error: null,
+        });
+      } catch (err: any) {
+        console.warn(`Firestore sync error on ${collectionName}/${docId}:`, err);
+        updateSyncStatus({
+          error: err.message || 'Sync failed',
+          statusText: 'Offline Cache Active',
+        });
+      }
     });
-  } catch (err: any) {
-    console.warn(`Firestore sync error on ${collectionName}/${docId}:`, err);
-    updateSyncStatus({
-      error: err.message || 'Sync failed',
-      statusText: 'Offline Cache Active',
-    });
-  }
+  cloudWriteQueues.set(key, currentWrite);
+  await currentWrite;
 }
 
 async function removeDocFromFirestore(collectionName: string, docId: string) {
-  try {
-    const docRef = doc(firestore, collectionName, docId);
-    await deleteDoc(docRef);
-    updateSyncStatus({
-      isConnected: true,
-      lastSyncedAt: new Date().toISOString(),
-      statusText: 'Cloud Synced',
+  const key = cloudRecordKey(collectionName, docId);
+  pendingCloudDeletes.add(key);
+  pendingCloudWrites.delete(key);
+  const previousWrite = cloudWriteQueues.get(key) || Promise.resolve();
+  const currentWrite = previousWrite
+    .catch(() => undefined)
+    .then(async () => {
+      try {
+        const docRef = doc(firestore, collectionName, docId);
+        await deleteDoc(docRef);
+        updateSyncStatus({
+          isConnected: true,
+          lastSyncedAt: new Date().toISOString(),
+          statusText: 'Cloud Synced',
+        });
+      } catch (err: any) {
+        console.warn(`Firestore delete error on ${collectionName}/${docId}:`, err);
+      }
     });
-  } catch (err: any) {
-    console.warn(`Firestore delete error on ${collectionName}/${docId}:`, err);
-  }
+  cloudWriteQueues.set(key, currentWrite);
+  await currentWrite;
 }
 
 /**
@@ -478,7 +555,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudParties.push(docSnap.data() as Party);
         });
-        setStorageItem(STORAGE_KEYS.PARTIES, cloudParties);
+        mergeCloudCollection(STORAGE_KEYS.PARTIES, 'parties', cloudParties);
       } else {
         const localParties = getParties();
         if (localParties.length > 0) {
@@ -497,7 +574,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudProducts.push(docSnap.data() as Product);
         });
-        setStorageItem(STORAGE_KEYS.PRODUCTS, cloudProducts);
+        mergeCloudCollection(STORAGE_KEYS.PRODUCTS, 'products', cloudProducts);
       } else {
         const localProducts = getProducts();
         if (localProducts.length > 0) {
@@ -516,7 +593,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudInvoices.push(docSnap.data() as Invoice);
         });
-        setStorageItem(STORAGE_KEYS.INVOICES, cloudInvoices);
+        mergeCloudCollection(STORAGE_KEYS.INVOICES, 'invoices', cloudInvoices);
       } else {
         const localInvoices = getInvoices();
         if (localInvoices.length > 0) {
@@ -535,7 +612,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudPayments.push(docSnap.data() as Payment);
         });
-        setStorageItem(STORAGE_KEYS.PAYMENTS, cloudPayments);
+        mergeCloudCollection(STORAGE_KEYS.PAYMENTS, 'payments', cloudPayments);
       } else {
         const localPayments = getPayments();
         if (localPayments.length > 0) {
@@ -553,7 +630,7 @@ export function setupFirebaseRealtimeListeners(): void {
       snapshot.forEach((docSnap) => {
         cloudPurchases.push(docSnap.data() as Purchase);
       });
-      setStorageItem(STORAGE_KEYS.PURCHASES, cloudPurchases);
+      mergeCloudCollection(STORAGE_KEYS.PURCHASES, 'purchases', cloudPurchases);
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
       console.warn('Purchases snapshot notice:', err.message);
@@ -566,7 +643,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudAccounts.push(docSnap.data() as Account);
         });
-        setStorageItem(STORAGE_KEYS.ACCOUNTS, cloudAccounts);
+        mergeCloudCollection(STORAGE_KEYS.ACCOUNTS, 'accounts', cloudAccounts);
         updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
       }
     }, (err) => {
@@ -579,7 +656,7 @@ export function setupFirebaseRealtimeListeners(): void {
       snapshot.forEach((docSnap) => {
         cloudExpenses.push(docSnap.data() as Expense);
       });
-      setStorageItem(STORAGE_KEYS.EXPENSES, cloudExpenses);
+      mergeCloudCollection(STORAGE_KEYS.EXPENSES, 'expenses', cloudExpenses);
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
       console.warn('Expenses snapshot notice:', err.message);
@@ -592,7 +669,7 @@ export function setupFirebaseRealtimeListeners(): void {
         snapshot.forEach((docSnap) => {
           cloudCats.push(docSnap.data() as ExpenseCategory);
         });
-        setStorageItem(STORAGE_KEYS.EXPENSE_CATEGORIES, cloudCats);
+        mergeCloudCollection(STORAGE_KEYS.EXPENSE_CATEGORIES, 'expense_categories', cloudCats);
         updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
       }
     }, (err) => {
@@ -605,7 +682,7 @@ export function setupFirebaseRealtimeListeners(): void {
       snapshot.forEach((docSnap) => {
         cloudTransfers.push(docSnap.data() as AccountTransfer);
       });
-      setStorageItem(STORAGE_KEYS.TRANSFERS, cloudTransfers);
+      mergeCloudCollection(STORAGE_KEYS.TRANSFERS, 'transfers', cloudTransfers);
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
       console.warn('Transfers snapshot notice:', err.message);
@@ -617,7 +694,7 @@ export function setupFirebaseRealtimeListeners(): void {
       snapshot.forEach((docSnap) => {
         cloudManual.push(docSnap.data() as ManualTransaction);
       });
-      setStorageItem(STORAGE_KEYS.MANUAL_TRANSACTIONS, cloudManual);
+      mergeCloudCollection(STORAGE_KEYS.MANUAL_TRANSACTIONS, 'manual_transactions', cloudManual);
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
       console.warn('Manual transactions snapshot notice:', err.message);
@@ -627,13 +704,13 @@ export function setupFirebaseRealtimeListeners(): void {
     onSnapshot(collection(firestore, 'settings'), (snapshot) => {
       snapshot.forEach((docSnap) => {
         if (docSnap.id === 'company') {
-          setStorageItem(STORAGE_KEYS.COMPANY_SETTINGS, docSnap.data());
+          mergeCloudDocument(STORAGE_KEYS.COMPANY_SETTINGS, 'settings', 'company', docSnap.data());
         } else if (docSnap.id === 'invoice') {
-          setStorageItem(STORAGE_KEYS.INVOICE_SETTINGS, docSnap.data());
+          mergeCloudDocument(STORAGE_KEYS.INVOICE_SETTINGS, 'settings', 'invoice', docSnap.data());
         } else if (docSnap.id === 'app') {
-          setStorageItem(STORAGE_KEYS.APP_SETTINGS, docSnap.data());
+          mergeCloudDocument(STORAGE_KEYS.APP_SETTINGS, 'settings', 'app', docSnap.data());
         } else if (docSnap.id === 'donation') {
-          setStorageItem(STORAGE_KEYS.DONATION_SETTINGS, docSnap.data());
+          mergeCloudDocument(STORAGE_KEYS.DONATION_SETTINGS, 'settings', 'donation', docSnap.data());
         }
       });
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
@@ -647,7 +724,7 @@ export function setupFirebaseRealtimeListeners(): void {
       snapshot.forEach((docSnap) => {
         cloudDonations.push(docSnap.data() as DonationRecord);
       });
-      setStorageItem(STORAGE_KEYS.DONATIONS, cloudDonations);
+      mergeCloudCollection(STORAGE_KEYS.DONATIONS, 'donations', cloudDonations);
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
       console.warn('Donations snapshot notice:', err.message);
