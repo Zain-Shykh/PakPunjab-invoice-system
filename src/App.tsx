@@ -400,9 +400,9 @@ export function App() {
     reader.readAsText(file);
   };
 
-  const handleResetAllData = () => {
+  const handleResetAllData = async () => {
     try {
-      resetAllData();
+      await resetAllData();
       reloadData();
       showToast('Database reset complete. Default settings initialized.');
     } catch (err) {

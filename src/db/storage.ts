@@ -624,11 +624,6 @@ export function setupFirebaseRealtimeListeners(): void {
           cloudParties.push(docSnap.data() as Party);
         });
         mergeCloudCollection(STORAGE_KEYS.PARTIES, 'parties', cloudParties);
-      } else {
-        const localParties = getParties();
-        if (localParties.length > 0) {
-          for (const p of localParties) syncDocToFirestore('parties', p.id, p);
-        }
       }
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
@@ -643,11 +638,6 @@ export function setupFirebaseRealtimeListeners(): void {
           cloudProducts.push(docSnap.data() as Product);
         });
         mergeCloudCollection(STORAGE_KEYS.PRODUCTS, 'products', cloudProducts);
-      } else {
-        const localProducts = getProducts();
-        if (localProducts.length > 0) {
-          for (const pr of localProducts) syncDocToFirestore('products', pr.id, pr);
-        }
       }
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
@@ -662,11 +652,6 @@ export function setupFirebaseRealtimeListeners(): void {
           cloudInvoices.push(docSnap.data() as Invoice);
         });
         mergeCloudCollection(STORAGE_KEYS.INVOICES, 'invoices', cloudInvoices);
-      } else {
-        const localInvoices = getInvoices();
-        if (localInvoices.length > 0) {
-          for (const inv of localInvoices) syncDocToFirestore('invoices', inv.id, inv);
-        }
       }
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
@@ -681,11 +666,6 @@ export function setupFirebaseRealtimeListeners(): void {
           cloudPayments.push(docSnap.data() as Payment);
         });
         mergeCloudCollection(STORAGE_KEYS.PAYMENTS, 'payments', cloudPayments);
-      } else {
-        const localPayments = getPayments();
-        if (localPayments.length > 0) {
-          for (const pay of localPayments) syncDocToFirestore('payments', pay.id, pay);
-        }
       }
       updateSyncStatus({ isConnected: true, lastSyncedAt: new Date().toISOString() });
     }, (err) => {
@@ -1787,8 +1767,43 @@ export function restoreBackup(backup: BackupData): void {
   notifyStorageChange();
 }
 
-export function resetAllData(): void {
-  // Clear local cache and re-initialize with clean accounts and zero demo records
+export async function resetAllData(): Promise<void> {
+  const collectionNames = [
+    'settings',
+    'parties',
+    'products',
+    'invoices',
+    'payments',
+    'purchases',
+    'accounts',
+    'expenses',
+    'expense_categories',
+    'transfers',
+    'manual_transactions',
+    'donations',
+  ];
+
+  for (const pendingWrite of cloudWriteQueues.values()) {
+    await pendingWrite.catch(() => undefined);
+  }
+
+  const snapshots = await Promise.all(
+    collectionNames.map((collectionName) => getDocs(collection(firestore, collectionName)))
+  );
+  const references = snapshots.flatMap((snapshot) => snapshot.docs.map((snapshotDoc) => snapshotDoc.ref));
+
+  for (let index = 0; index < references.length; index += 500) {
+    const batch = writeBatch(firestore);
+    references.slice(index, index + 500).forEach((reference) => batch.delete(reference));
+    await batch.commit();
+  }
+
+  pendingCloudWrites.clear();
+  pendingCloudDeletes.clear();
+  cloudWriteQueues.clear();
+  localStorage.removeItem(STORAGE_KEYS.FIREBASE_PENDING_WRITES);
+
+  // Clear local cache and re-initialize with clean accounts and zero demo records.
   localStorage.removeItem(STORAGE_KEYS.PARTIES);
   localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
   localStorage.removeItem(STORAGE_KEYS.INVOICES);
@@ -1802,6 +1817,8 @@ export function resetAllData(): void {
   localStorage.removeItem(STORAGE_KEYS.COMPANY_SETTINGS);
   localStorage.removeItem(STORAGE_KEYS.INVOICE_SETTINGS);
   localStorage.removeItem(STORAGE_KEYS.APP_SETTINGS);
+  localStorage.removeItem(STORAGE_KEYS.DONATION_SETTINGS);
+  localStorage.removeItem(STORAGE_KEYS.DONATIONS);
   initStorage();
   notifyStorageChange();
 }
