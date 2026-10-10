@@ -48,6 +48,7 @@ export const STORAGE_KEYS = {
   DONATION_SETTINGS: 'donation_settings',
   DONATIONS: 'donations',
   FIREBASE_SYNC_META: 'firebase_sync_meta',
+  FIREBASE_PENDING_WRITES: 'firebase_pending_writes',
 };
 
 export const DEFAULT_DONATION_SETTINGS: DonationSettings = {
@@ -254,6 +255,50 @@ const pendingCloudWrites = new Map<string, unknown>();
 const pendingCloudDeletes = new Set<string>();
 const cloudWriteQueues = new Map<string, Promise<void>>();
 
+interface PendingCloudOperation {
+  type: 'set' | 'delete';
+  collectionName: string;
+  docId: string;
+  data?: unknown;
+}
+
+function persistPendingCloudOperations(): void {
+  const operations: PendingCloudOperation[] = [];
+  for (const [key, data] of pendingCloudWrites) {
+    const separator = key.indexOf('/');
+    operations.push({
+      type: 'set',
+      collectionName: key.slice(0, separator),
+      docId: key.slice(separator + 1),
+      data,
+    });
+  }
+  for (const key of pendingCloudDeletes) {
+    const separator = key.indexOf('/');
+    operations.push({
+      type: 'delete',
+      collectionName: key.slice(0, separator),
+      docId: key.slice(separator + 1),
+    });
+  }
+  localStorage.setItem(STORAGE_KEYS.FIREBASE_PENDING_WRITES, JSON.stringify(operations));
+}
+
+function restorePendingCloudOperations(): void {
+  const operations = getStorageItem<PendingCloudOperation[]>(
+    STORAGE_KEYS.FIREBASE_PENDING_WRITES,
+    []
+  );
+  for (const operation of operations) {
+    const key = cloudRecordKey(operation.collectionName, operation.docId);
+    if (operation.type === 'set') {
+      pendingCloudWrites.set(key, operation.data);
+    } else {
+      pendingCloudDeletes.add(key);
+    }
+  }
+}
+
 function cloudRecordKey(collectionName: string, docId: string): string {
   return `${collectionName}/${docId}`;
 }
@@ -272,6 +317,7 @@ function mergeCloudCollection<T extends { id: string }>(
       const cloudRecord = recordsById.get(id);
       if (cloudRecord && JSON.stringify(cloudRecord) === JSON.stringify(record)) {
         pendingCloudWrites.delete(key);
+        persistPendingCloudOperations();
         continue;
       }
       recordsById.set(id, record as T);
@@ -283,6 +329,7 @@ function mergeCloudCollection<T extends { id: string }>(
       const id = key.slice(collectionName.length + 1);
       if (!recordsById.has(id)) {
         pendingCloudDeletes.delete(key);
+        persistPendingCloudOperations();
       } else {
         recordsById.delete(id);
       }
@@ -313,6 +360,7 @@ async function syncDocToFirestore(collectionName: string, docId: string, data: a
   const key = cloudRecordKey(collectionName, docId);
   pendingCloudWrites.set(key, data);
   pendingCloudDeletes.delete(key);
+  persistPendingCloudOperations();
   const previousWrite = cloudWriteQueues.get(key) || Promise.resolve();
   const currentWrite = previousWrite
     .catch(() => undefined)
@@ -320,6 +368,8 @@ async function syncDocToFirestore(collectionName: string, docId: string, data: a
       try {
         const docRef = doc(firestore, collectionName, docId);
         await setDoc(docRef, data, { merge: true });
+        pendingCloudWrites.delete(key);
+        persistPendingCloudOperations();
         updateSyncStatus({
           isConnected: true,
           lastSyncedAt: new Date().toISOString(),
@@ -342,6 +392,7 @@ async function removeDocFromFirestore(collectionName: string, docId: string) {
   const key = cloudRecordKey(collectionName, docId);
   pendingCloudDeletes.add(key);
   pendingCloudWrites.delete(key);
+  persistPendingCloudOperations();
   const previousWrite = cloudWriteQueues.get(key) || Promise.resolve();
   const currentWrite = previousWrite
     .catch(() => undefined)
@@ -349,6 +400,8 @@ async function removeDocFromFirestore(collectionName: string, docId: string) {
       try {
         const docRef = doc(firestore, collectionName, docId);
         await deleteDoc(docRef);
+        pendingCloudDeletes.delete(key);
+        persistPendingCloudOperations();
         updateSyncStatus({
           isConnected: true,
           lastSyncedAt: new Date().toISOString(),
@@ -360,6 +413,21 @@ async function removeDocFromFirestore(collectionName: string, docId: string) {
     });
   cloudWriteQueues.set(key, currentWrite);
   await currentWrite;
+}
+
+function flushPendingCloudOperations(): void {
+  for (const [key, data] of pendingCloudWrites) {
+    const separator = key.indexOf('/');
+    void syncDocToFirestore(
+      key.slice(0, separator),
+      key.slice(separator + 1),
+      data
+    );
+  }
+  for (const key of pendingCloudDeletes) {
+    const separator = key.indexOf('/');
+    void removeDocFromFirestore(key.slice(0, separator), key.slice(separator + 1));
+  }
 }
 
 /**
@@ -786,6 +854,8 @@ function cleanLegacyDemoData(): void {
  * Initialize storage with clean real defaults (NO DEMO DATA) and start Firebase synchronization
  */
 export function initStorage(): void {
+  restorePendingCloudOperations();
+
   if (!localStorage.getItem(STORAGE_KEYS.COMPANY_SETTINGS)) {
     localStorage.setItem(STORAGE_KEYS.COMPANY_SETTINGS, JSON.stringify(DEFAULT_COMPANY_SETTINGS));
   }
@@ -881,6 +951,7 @@ export function initStorage(): void {
 
   // Hook Firebase listeners
   setupFirebaseRealtimeListeners();
+  flushPendingCloudOperations();
 }
 
 // ---------------- COMPANY SETTINGS ----------------
