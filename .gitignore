@@ -1,0 +1,18 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Local tooling and generated project metadata
+.agents/
+.claude/
+skills-lock.json
+metadata.json
+bun.lock
+
+# Stale AI Studio Firebase configuration
+firebase-applet-config.json

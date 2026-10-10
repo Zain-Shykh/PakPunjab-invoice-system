@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Veloce Ledger - Sales, Invoices & Party Accounts</title>
+    <meta name="description" content="Complete offline-first Sales, Invoicing, Party Ledger, and Payment Management software for small and medium businesses." />
+    <meta property="og:title" content="Veloce Ledger - Sales, Invoices & Party Accounts" />
+    <meta property="og:description" content="Complete offline-first Sales, Invoicing, Party Ledger, and Payment Management software for small and medium businesses." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#7c3aed" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 antialiased selection:bg-purple-500 selection:text-white min-h-screen">
+    <div id="root"></div>
+    <div id="printArea" class="hidden print:block"></div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyBNXmNpi3QiAfxprZLXXfPiKTGgDuYrswI",
+        authDomain: "pakpunjab-983fc.firebaseapp.com",
+        projectId: "pakpunjab-983fc",
+        storageBucket: "pakpunjab-983fc.firebasestorage.app",
+        messagingSenderId: "1093351401778",
+        appId: "1:1093351401778:web:2d02b054e9e6bc4eec0f2b"
+      };
+
+      // Initialize Firebase
+      try {
+        const app = initializeApp(firebaseConfig);
+        // Analytics runs only in browser environments where supported
+        if (typeof window !== 'undefined') {
+          try {
+            getAnalytics(app);
+          } catch (e) {
+            console.log('Firebase Analytics optional init:', e);
+          }
+        }
+        window.__FIREBASE_APP__ = app;
+        window.__FIREBASE_CONFIG__ = firebaseConfig;
+      } catch (err) {
+        console.warn('Firebase init in HTML:', err);
+      }
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
