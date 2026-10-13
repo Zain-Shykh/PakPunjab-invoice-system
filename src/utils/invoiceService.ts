@@ -66,7 +66,7 @@ export function renderInvoicePrint(
       .join('');
 
     printArea.innerHTML = `
-      <div class="print-thermal-container" style="width: ${isThermal58 ? '215px' : '290px'}; max-width: 100%; margin: 0 auto; font-family: monospace; font-size: ${isThermal58 ? '10px' : '11px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
+      <div class="print-thermal-container" style="width: ${isThermal58 ? '48mm' : '72mm'}; max-width: 100%; margin: 0 auto; font-family: monospace; font-size: ${isThermal58 ? '10px' : '11px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
         <div style="text-align: center; border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px;">
           ${
             company.logo && settings.showLogo !== false
@@ -140,6 +140,19 @@ export function renderInvoicePrint(
 
     document.body.classList.add('printing-active');
     document.body.classList.add('printing-thermal');
+
+    // @page can't be scoped by a class, so inject it for this print only (removed in cleanup).
+    // Chrome rejects "80mm auto", so measure the receipt and use an explicit height (fixed width, no margins).
+    // Printable area is ~72mm on 80mm rolls, ~48mm on 58mm.
+    const receipt = printArea.firstElementChild as HTMLElement;
+    const prevCss = printArea.style.cssText;
+    printArea.style.cssText = 'display:block;position:absolute;visibility:hidden;left:0;top:0;';
+    const heightMm = Math.ceil((receipt.getBoundingClientRect().height * 25.4) / 96) + 8; // +4mm padding, +4mm feed
+    printArea.style.cssText = prevCss;
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'thermal-page-style';
+    pageStyle.textContent = `@page { size: ${isThermal58 ? '58mm' : '80mm'} ${heightMm}mm; margin: 0; }`;
+    document.head.appendChild(pageStyle);
   } else {
     // ---------------- FULL PROFESSIONAL A4 INVOICE ----------------
     const showA4Index = settings.showItemIndex !== false;
@@ -288,6 +301,7 @@ export function renderInvoicePrint(
     const cleanup = () => {
       document.body.classList.remove('printing-active');
       document.body.classList.remove('printing-thermal');
+      document.getElementById('thermal-page-style')?.remove();
       if (printArea) {
         printArea.innerHTML = '';
       }

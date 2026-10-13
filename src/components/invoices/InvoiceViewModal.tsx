@@ -47,7 +47,7 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
   party,
   initialAction = 'view',
 }) => {
-  const [activeFormat, setActiveFormat] = useState<'a4' | 'thermal' | 'thermal58'>('a4');
+  const [activeFormat, setActiveFormat] = useState<'a4' | 'thermal' | 'thermal58'>('thermal');
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
   const [copiedText, setCopiedText] = useState(false);
@@ -60,7 +60,7 @@ export const InvoiceViewModal: React.FC<InvoiceViewModalProps> = ({
     if (!isOpen || !invoice || !initialAction || initialAction === 'view') return;
     const timer = setTimeout(() => {
       if (initialAction === 'print') {
-        handlePrint('a4');
+        handlePrint('thermal');
       } else if (initialAction === 'whatsapp') {
         handleWhatsAppAction();
       }
