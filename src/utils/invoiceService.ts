@@ -140,19 +140,6 @@ export function renderInvoicePrint(
 
     document.body.classList.add('printing-active');
     document.body.classList.add('printing-thermal');
-
-    // @page can't be scoped by a class, so inject it for this print only (removed in cleanup).
-    // Chrome rejects "80mm auto", so measure the receipt and use an explicit height (fixed width, no margins).
-    // Printable area is ~72mm on 80mm rolls, ~48mm on 58mm.
-    const receipt = printArea.firstElementChild as HTMLElement;
-    const prevCss = printArea.style.cssText;
-    printArea.style.cssText = 'display:block;position:absolute;visibility:hidden;left:0;top:0;';
-    const heightMm = Math.ceil((receipt.getBoundingClientRect().height * 25.4) / 96) + 8; // +4mm padding, +4mm feed
-    printArea.style.cssText = prevCss;
-    const pageStyle = document.createElement('style');
-    pageStyle.id = 'thermal-page-style';
-    pageStyle.textContent = `@page { size: ${isThermal58 ? '58mm' : '80mm'} ${heightMm}mm; margin: 0; }`;
-    document.head.appendChild(pageStyle);
   } else {
     // ---------------- FULL PROFESSIONAL A4 INVOICE ----------------
     const showA4Index = settings.showItemIndex !== false;
@@ -295,7 +282,24 @@ export function renderInvoicePrint(
   }
 
   // Trigger print
-  setTimeout(() => {
+  setTimeout(async () => {
+    if (format !== 'a4') {
+      // @page can't be scoped by a class, so inject it for this print only (removed in cleanup).
+      // Chrome rejects "80mm auto", so measure the receipt and use an explicit height (fixed width, no margins).
+      // Measure only after images load, or the logo is missed and the footer spills onto a 2nd page.
+      await Promise.all(
+        Array.from(printArea.querySelectorAll('img')).map((img) => img.decode().catch(() => undefined))
+      );
+      const receipt = printArea.firstElementChild as HTMLElement;
+      const prevCss = printArea.style.cssText;
+      printArea.style.cssText = 'display:block;position:absolute;visibility:hidden;left:0;top:0;';
+      const heightMm = Math.ceil((receipt.getBoundingClientRect().height * 25.4) / 96) + 8; // +4mm padding, +4mm feed
+      printArea.style.cssText = prevCss;
+      const pageStyle = document.createElement('style');
+      pageStyle.id = 'thermal-page-style';
+      pageStyle.textContent = `@page { size: ${isThermal58 ? '58mm' : '80mm'} ${heightMm}mm; margin: 0; }`;
+      document.head.appendChild(pageStyle);
+    }
     window.print();
 
     const cleanup = () => {
