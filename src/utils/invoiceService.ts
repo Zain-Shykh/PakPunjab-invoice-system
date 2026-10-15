@@ -282,22 +282,14 @@ export function renderInvoicePrint(
   }
 
   // Trigger print
-  setTimeout(async () => {
+  setTimeout(() => {
     if (format !== 'a4') {
       // @page can't be scoped by a class, so inject it for this print only (removed in cleanup).
-      // Chrome rejects "80mm auto", so measure the receipt and use an explicit height (fixed width, no margins).
-      // Measure only after images load, or the logo is missed and the footer spills onto a 2nd page.
-      await Promise.all(
-        Array.from(printArea.querySelectorAll('img')).map((img) => img.decode().catch(() => undefined))
-      );
-      const receipt = printArea.firstElementChild as HTMLElement;
-      const prevCss = printArea.style.cssText;
-      printArea.style.cssText = 'display:block;position:absolute;visibility:hidden;left:0;top:0;';
-      const heightMm = Math.ceil((receipt.getBoundingClientRect().height * 25.4) / 96) + 8; // +4mm padding, +4mm feed
-      printArea.style.cssText = prevCss;
+      // size:auto = the printer's own paper (80mm roll / 80x210 PPD size), so Chrome's dialog and the driver agree.
+      // A forced custom height clashed with the driver's fixed sizes (rotated/cut-off prints).
       const pageStyle = document.createElement('style');
       pageStyle.id = 'thermal-page-style';
-      pageStyle.textContent = `@page { size: ${isThermal58 ? '58mm' : '80mm'} ${heightMm}mm; margin: 0; }`;
+      pageStyle.textContent = '@page { size: auto; margin: 0; }';
       document.head.appendChild(pageStyle);
     }
     window.print();
