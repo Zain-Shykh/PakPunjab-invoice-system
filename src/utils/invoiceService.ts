@@ -133,7 +133,7 @@ export function renderInvoicePrint(
 
           <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '12px' : '14px'}; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #000000;">
             <span>Total Outstanding:</span>
-            <span style="color: ${invoice.newBalance > 0 ? '#dc2626' : '#0f172a'};">${formatCurrency(invoice.newBalance, curr)}</span>
+            <span style="color: #000000;">${formatCurrency(invoice.newBalance, curr)}</span>
           </div>
         </div>
 
