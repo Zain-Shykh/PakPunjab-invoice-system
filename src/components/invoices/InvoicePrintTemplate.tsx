@@ -117,7 +117,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
     return (
       <div
         className={`${
-          is58mm ? 'w-[215px] p-2 text-[10px]' : 'w-[300px] p-3.5 text-xs'
+          is58mm ? 'w-[215px] p-2 text-[10px]' : 'w-[300px] p-3.5 text-sm'
         } max-w-full bg-white text-black font-mono mx-auto space-y-2 leading-tight`}
         style={{ fontFamily: fontFamilyStyle, color: '#000000', backgroundColor: '#ffffff' }}
       >
@@ -130,28 +130,28 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
               crossOrigin="anonymous"
               loading="eager"
               decoding="sync"
-              className={`${is58mm ? 'max-h-10 max-w-28' : 'max-h-14 max-w-36'} object-contain mx-auto mb-1`}
+              className={`${is58mm ? 'max-h-14 max-w-32' : 'max-h-20 max-w-52'} object-contain mx-auto mb-1`}
             />
           )}
-          <h2 className={`${is58mm ? 'text-sm' : 'text-base'} font-black uppercase tracking-wider`}>
+          <h2 className={`${is58mm ? 'text-base' : 'text-xl'} font-black uppercase tracking-wider`}>
             {company.businessName}
           </h2>
-          {company.tagline && <p className={is58mm ? 'text-[9px]' : 'text-[10px]'}>{company.tagline}</p>}
+          {company.tagline && <p className={is58mm ? 'text-[10px]' : 'text-xs'}>{company.tagline}</p>}
           {settings.showAddress && company.address && (
-            <p className={is58mm ? 'text-[9px]' : 'text-[10px]'}>
+            <p className={is58mm ? 'text-[10px]' : 'text-xs'}>
               {company.address}
               {company.city ? `, ${company.city}` : ''}
             </p>
           )}
-          <div className={`flex justify-center gap-1.5 ${is58mm ? 'text-[9px]' : 'text-[10px]'}`}>
+          <div className={`flex justify-center gap-1.5 ${is58mm ? 'text-[10px]' : 'text-xs'}`}>
             {company.phone && <span>Tel: {company.phone}</span>}
             {settings.showWhatsApp && company.whatsapp && <span>WA: {company.whatsapp}</span>}
           </div>
-          {company.taxNtn && <p className={is58mm ? 'text-[9px]' : 'text-[10px]'}>{company.taxNtn}</p>}
+          {company.taxNtn && <p className={is58mm ? 'text-[10px]' : 'text-xs'}>{company.taxNtn}</p>}
         </div>
 
         {/* Invoice Meta */}
-        <div className={`border-b border-dashed border-black pb-1.5 space-y-0.5 ${is58mm ? 'text-[9px]' : 'text-[11px]'}`}>
+        <div className={`border-b border-dashed border-black pb-1.5 space-y-0.5 ${is58mm ? 'text-[10px]' : 'text-[13px]'}`}>
           <div className="flex justify-between">
             <span className="font-bold">INV #: {invoice.invoiceNo}</span>
             {settings.showDateTime && (
@@ -162,7 +162,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
           </div>
           <div className="flex justify-between">
             <span>Customer:</span>
-            <span className={`font-bold truncate ${is58mm ? 'max-w-[120px]' : 'max-w-[170px]'}`}>
+            <span className={`font-bold truncate ${is58mm ? 'max-w-[120px]' : 'max-w-[190px]'}`}>
               {invoice.partyName}
             </span>
           </div>
@@ -175,7 +175,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
           {settings.showAddress && invoice.partyAddress && (
             <div className="flex justify-between">
               <span>Address:</span>
-              <span className={`truncate ${is58mm ? 'max-w-[120px]' : 'max-w-[170px]'}`}>
+              <span className={`truncate ${is58mm ? 'max-w-[120px]' : 'max-w-[190px]'}`}>
                 {invoice.partyAddress}
               </span>
             </div>
@@ -188,7 +188,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
 
         {/* Items Table (Strict dynamic column visibility - auto-expands visible columns) */}
         <div className="border-b border-dashed border-black pb-1.5 overflow-hidden">
-          <table className={`w-full border-collapse ${is58mm ? 'text-[9px]' : 'text-[11px]'}`}>
+          <table className={`w-full border-collapse ${is58mm ? 'text-[10px]' : 'text-[13px]'}`}>
             <thead>
               <tr className="border-b border-black font-bold">
                 {showIndex && (
@@ -210,7 +210,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             </thead>
             <tbody className="divide-y divide-dotted divide-black">
               {visibleItems.map((item, idx) => (
-                <tr key={item.id || idx} className={`${is58mm ? 'text-[9px]' : 'text-[10px]'}`}>
+                <tr key={item.id || idx} className={`${is58mm ? 'text-[10px]' : 'text-xs'}`}>
                   {showIndex && (
                     <td className="py-0.5 pr-1 text-center align-top">{idx + 1}</td>
                   )}
@@ -242,7 +242,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
         </div>
 
         {/* Thermal Totals & Financial Summary */}
-        <div className={`space-y-1 ${is58mm ? 'text-[9px]' : 'text-[11px]'} pt-1`}>
+        <div className={`space-y-1 ${is58mm ? 'text-[10px]' : 'text-[13px]'} pt-1`}>
           <div className="flex justify-between font-bold">
             <span>Total Pieces:</span>
             <span>{visibleItems.reduce((n, it) => n + (Number(it.quantity) || 0), 0)}</span>
@@ -271,7 +271,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             <span>{formatCurrency(invoice.paidAmount, curr)}</span>
           </div>
 
-          <div className={`flex justify-between font-black ${is58mm ? 'text-[11px]' : 'text-xs'} pt-1 border-t border-dashed border-black`}>
+          <div className={`flex justify-between font-black ${is58mm ? 'text-xs' : 'text-sm'} pt-1 border-t border-dashed border-black`}>
             <span>Total Outstanding:</span>
             <span>
               {formatCurrency(invoice.newBalance, curr)}
@@ -291,7 +291,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
 
         {/* Footer */}
         {settings.showFooter && (
-          <div className={`border-t border-dashed border-black pt-1.5 text-center ${is58mm ? 'text-[9px]' : 'text-[10px]'} space-y-0.5`}>
+          <div className={`border-t border-dashed border-black pt-1.5 text-center ${is58mm ? 'text-[10px]' : 'text-xs'} space-y-0.5`}>
             {settings.showThankYou && (
               <p className="font-bold">{company.thankYouMsg || 'Thank you for your business!'}</p>
             )}

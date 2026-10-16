@@ -55,7 +55,7 @@ export function renderInvoicePrint(
     const itemsHtml = visibleItems
       .map(
         (it, idx) => `
-        <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '9px' : '10px'};">
+        <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '10px' : '12px'};">
           ${showIndex ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top;">${idx + 1}</td>` : ''}
           ${showItem ? `<td style="padding: 2px 2px; text-align: left; vertical-align: top; word-break: break-word;">${it.description}</td>` : ''}
           ${showQty ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top; white-space: nowrap;">${it.quantity}${settings.showProductUnit !== false && it.unit ? ` ${it.unit}` : ''}</td>` : ''}
@@ -67,34 +67,34 @@ export function renderInvoicePrint(
       .join('');
 
     printArea.innerHTML = `
-      <div class="print-thermal-container" style="width: ${isThermal58 ? '48mm' : '72mm'}; max-width: 100%; margin: 0 auto; font-family: monospace; font-size: ${isThermal58 ? '10px' : '11px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
+      <div class="print-thermal-container" style="width: ${isThermal58 ? '48mm' : '72mm'}; max-width: 100%; margin: 0 auto; font-family: monospace; font-size: ${isThermal58 ? '11px' : '13px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
         <div style="text-align: center; border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px;">
           ${
             company.logo && settings.showLogo !== false
-              ? `<img src="${company.logo}" alt="Logo" style="max-height: ${isThermal58 ? '36px' : '45px'}; max-width: 100px; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
+              ? `<img src="${company.logo}" alt="Logo" style="max-height: ${isThermal58 ? '50px' : '80px'}; max-width: ${isThermal58 ? '120px' : '180px'}; object-fit: contain; margin: 0 auto 4px auto; display: block;" />`
               : ''
           }
-          <div style="font-size: ${isThermal58 ? '13px' : '15px'}; font-weight: 900; text-transform: uppercase;">${company.businessName}</div>
-          ${company.tagline ? `<div style="font-size: ${isThermal58 ? '9px' : '10px'};">${company.tagline}</div>` : ''}
-          ${company.address && settings.showAddress ? `<div style="font-size: ${isThermal58 ? '9px' : '10px'};">${company.address}${company.city ? `, ${company.city}` : ''}</div>` : ''}
-          ${company.phone ? `<div style="font-size: ${isThermal58 ? '9px' : '10px'};">Tel: ${company.phone}</div>` : ''}
-          ${company.taxNtn ? `<div style="font-size: ${isThermal58 ? '9px' : '10px'};">NTN: ${company.taxNtn}</div>` : ''}
+          <div style="font-size: ${isThermal58 ? '16px' : '22px'}; font-weight: 900; text-transform: uppercase;">${company.businessName}</div>
+          ${company.tagline ? `<div style="font-size: ${isThermal58 ? '10px' : '12px'};">${company.tagline}</div>` : ''}
+          ${company.address && settings.showAddress ? `<div style="font-size: ${isThermal58 ? '10px' : '12px'};">${company.address}${company.city ? `, ${company.city}` : ''}</div>` : ''}
+          ${company.phone ? `<div style="font-size: ${isThermal58 ? '10px' : '12px'};">Tel: ${company.phone}</div>` : ''}
+          ${company.taxNtn ? `<div style="font-size: ${isThermal58 ? '10px' : '12px'};">NTN: ${company.taxNtn}</div>` : ''}
         </div>
 
-        <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '9px' : '10px'};">
+        <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '10px' : '12px'};">
           <div style="display: flex; justify-content: space-between;">
             <span style="font-weight: bold;">INV #: ${invoice.invoiceNo}</span>
             <span>${formatDate(invoice.date)} ${invoice.time || ''}</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-top: 2px;">
             <span>Customer:</span>
-            <span style="font-weight: bold; max-width: ${isThermal58 ? '120px' : '170px'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${invoice.partyName}</span>
+            <span style="font-weight: bold; max-width: ${isThermal58 ? '120px' : '190px'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${invoice.partyName}</span>
           </div>
           ${invoice.partyPhone ? `<div style="display: flex; justify-content: space-between;"><span>Phone:</span><span>${invoice.partyPhone}</span></div>` : ''}
         </div>
 
         <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; overflow: hidden;">
-          <table style="width: 100%; border-collapse: collapse; font-size: ${isThermal58 ? '9px' : '10px'};">
+          <table style="width: 100%; border-collapse: collapse; font-size: ${isThermal58 ? '10px' : '12px'};">
             <thead>
               ${itemsHeadersHtml}
             </thead>
@@ -104,7 +104,7 @@ export function renderInvoicePrint(
           </table>
         </div>
 
-        <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '10px' : '11px'};">
+        <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '11px' : '13px'};">
           <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 3px;">
             <span>Total Pieces:</span>
             <span>${totalPieces}</span>
@@ -122,7 +122,7 @@ export function renderInvoicePrint(
 
           ${
             invoice.discount
-              ? `<div style="display: flex; justify-content: space-between; font-size: 10px;"><span>Discount:</span><span>-${formatCurrency(invoice.discount, curr)}</span></div>`
+              ? `<div style="display: flex; justify-content: space-between; font-size: 12px;"><span>Discount:</span><span>-${formatCurrency(invoice.discount, curr)}</span></div>`
               : ''
           }
 
@@ -131,13 +131,13 @@ export function renderInvoicePrint(
             <span>${formatCurrency(invoice.paidAmount, curr)}</span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '11px' : '12px'}; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #000000;">
+          <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '12px' : '14px'}; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #000000;">
             <span>Total Outstanding:</span>
             <span style="color: ${invoice.newBalance > 0 ? '#dc2626' : '#0f172a'};">${formatCurrency(invoice.newBalance, curr)}</span>
           </div>
         </div>
 
-        <div style="text-align: center; font-size: ${isThermal58 ? '8px' : '9px'}; padding-top: 4px;">
+        <div style="text-align: center; font-size: ${isThermal58 ? '9px' : '11px'}; padding-top: 4px;">
           <div>${company.thankYouMsg || 'Thank you for your business!'}</div>
           <div style="margin-top: 2px; color: #64748b;">Software by Veloce Ledger</div>
         </div>
