@@ -208,7 +208,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-dotted divide-slate-300">
+            <tbody className="divide-y divide-dotted divide-black">
               {visibleItems.map((item, idx) => (
                 <tr key={item.id || idx} className={`${is58mm ? 'text-[9px]' : 'text-[10px]'}`}>
                   {showIndex && (
@@ -243,6 +243,11 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
 
         {/* Thermal Totals & Financial Summary */}
         <div className={`space-y-1 ${is58mm ? 'text-[9px]' : 'text-[11px]'} pt-1`}>
+          <div className="flex justify-between font-bold">
+            <span>Total Pieces:</span>
+            <span>{visibleItems.reduce((n, it) => n + (Number(it.quantity) || 0), 0)}</span>
+          </div>
+
           <div className="flex justify-between">
             <span>Previous Balance:</span>
             <span className="font-bold">
@@ -251,7 +256,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             </span>
           </div>
 
-          <div className={`flex justify-between font-bold ${is58mm ? 'text-[11px]' : 'text-xs'} pt-0.5 border-t border-black`}>
+          <div className={`flex justify-between font-black ${is58mm ? 'text-xs' : 'text-base'} pt-0.5 border-t border-black`}>
             <span>Invoice Total:</span>
             <span>{formatCurrency(invoice.grandTotal, curr)}</span>
           </div>
@@ -261,7 +266,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             <span>{invoice.discount > 0 ? `-${formatCurrency(invoice.discount, curr)}` : formatCurrency(0, curr)}</span>
           </div>
 
-          <div className="flex justify-between font-bold">
+          <div className={`flex justify-between font-black ${is58mm ? 'text-xs' : 'text-base'}`}>
             <span>Payment Received:</span>
             <span>{formatCurrency(invoice.paidAmount, curr)}</span>
           </div>

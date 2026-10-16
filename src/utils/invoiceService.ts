@@ -31,6 +31,7 @@ export function renderInvoicePrint(
   const curr = company.currency || 'Rs.';
   const visibleItems = getVisibleInvoiceItems(invoice.items, getProducts());
   const isThermal58 = format === 'thermal58';
+  const totalPieces = visibleItems.reduce((n, it) => n + (Number(it.quantity) || 0), 0);
 
   // Shared column visibility settings
   const showItem = settings.showProductDescription !== false;
@@ -54,7 +55,7 @@ export function renderInvoicePrint(
     const itemsHtml = visibleItems
       .map(
         (it, idx) => `
-        <tr style="border-bottom: 1px dotted #e2e8f0; font-size: ${isThermal58 ? '9px' : '10px'};">
+        <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '9px' : '10px'};">
           ${showIndex ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top;">${idx + 1}</td>` : ''}
           ${showItem ? `<td style="padding: 2px 2px; text-align: left; vertical-align: top; word-break: break-word;">${it.description}</td>` : ''}
           ${showQty ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top; white-space: nowrap;">${it.quantity}${settings.showProductUnit !== false && it.unit ? ` ${it.unit}` : ''}</td>` : ''}
@@ -104,12 +105,17 @@ export function renderInvoicePrint(
         </div>
 
         <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '10px' : '11px'};">
+          <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 3px;">
+            <span>Total Pieces:</span>
+            <span>${totalPieces}</span>
+          </div>
+
           <div style="display: flex; justify-content: space-between;">
             <span>Previous Balance:</span>
             <span style="font-weight: bold;">${formatCurrency(invoice.previousBalance, curr)}</span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '11px' : '12px'}; margin: 3px 0; border-top: 1px solid #000000; padding-top: 3px;">
+          <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '12px' : '15px'}; margin: 3px 0; border-top: 1px solid #000000; padding-top: 3px;">
             <span>Invoice Total:</span>
             <span>${formatCurrency(invoice.grandTotal, curr)}</span>
           </div>
@@ -120,7 +126,7 @@ export function renderInvoicePrint(
               : ''
           }
 
-          <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;">
+          <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${isThermal58 ? '12px' : '15px'}; margin-top: 2px;">
             <span>Payment Received:</span>
             <span>${formatCurrency(invoice.paidAmount, curr)}</span>
           </div>
