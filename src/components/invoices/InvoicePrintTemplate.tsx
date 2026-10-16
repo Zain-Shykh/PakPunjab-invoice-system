@@ -210,7 +210,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             </thead>
             <tbody className="divide-y divide-dotted divide-black">
               {visibleItems.map((item, idx) => (
-                <tr key={item.id || idx} className={`${is58mm ? 'text-[10px]' : 'text-xs'}`}>
+                <tr key={item.id || idx} className={`${is58mm ? 'text-xs' : 'text-sm'}`}>
                   {showIndex && (
                     <td className="py-0.5 pr-1 text-center align-top">{idx + 1}</td>
                   )}

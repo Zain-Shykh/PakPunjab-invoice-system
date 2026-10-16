@@ -55,7 +55,7 @@ export function renderInvoicePrint(
     const itemsHtml = visibleItems
       .map(
         (it, idx) => `
-        <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '10px' : '12px'};">
+        <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '12px' : '14px'};">
           ${showIndex ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top;">${idx + 1}</td>` : ''}
           ${showItem ? `<td style="padding: 2px 2px; text-align: left; vertical-align: top; word-break: break-word;">${it.description}</td>` : ''}
           ${showQty ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top; white-space: nowrap;">${it.quantity}${settings.showProductUnit !== false && it.unit ? ` ${it.unit}` : ''}</td>` : ''}
