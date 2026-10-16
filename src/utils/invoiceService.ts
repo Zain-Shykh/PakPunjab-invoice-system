@@ -67,7 +67,7 @@ export function renderInvoicePrint(
       .join('');
 
     printArea.innerHTML = `
-      <div class="print-thermal-container" style="width: ${isThermal58 ? '48mm' : '72mm'}; max-width: 100%; margin: 0 auto; font-family: monospace; font-size: ${isThermal58 ? '11px' : '13px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
+      <div class="print-thermal-container" style="width: ${isThermal58 ? '48mm' : '72mm'}; max-width: 100%; margin: 0 auto; font-family: Arial, Helvetica, 'Liberation Sans', sans-serif; font-size: ${isThermal58 ? '11px' : '13px'}; color: #000000; background: #ffffff; padding: 4px; box-sizing: border-box;">
         <div style="text-align: center; border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px;">
           ${
             company.logo && settings.showLogo !== false

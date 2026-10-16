@@ -118,8 +118,8 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
       <div
         className={`${
           is58mm ? 'w-[215px] p-2 text-[10px]' : 'w-[300px] p-3.5 text-sm'
-        } max-w-full bg-white text-black font-mono mx-auto space-y-2 leading-tight`}
-        style={{ fontFamily: fontFamilyStyle, color: '#000000', backgroundColor: '#ffffff' }}
+        } max-w-full bg-white text-black mx-auto space-y-2 leading-tight`}
+        style={{ fontFamily: 'Arial, Helvetica, "Liberation Sans", sans-serif', color: '#000000', backgroundColor: '#ffffff' }}
       >
         {/* Thermal Header */}
         <div className="text-center border-b border-dashed border-black pb-2 space-y-1">
