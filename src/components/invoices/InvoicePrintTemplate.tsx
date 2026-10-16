@@ -198,10 +198,10 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
                   <th className="py-0.5 px-0.5 text-left">Item</th>
                 )}
                 {showQty && (
-                  <th className="py-0.5 px-1 text-center whitespace-nowrap">Qty</th>
+                  <th className="py-0.5 pl-1 pr-2 text-center whitespace-nowrap">Qty</th>
                 )}
                 {showRate && (
-                  <th className="py-0.5 px-1 text-right whitespace-nowrap">Rate</th>
+                  <th className="py-0.5 pl-2 pr-1 text-right whitespace-nowrap">Rate</th>
                 )}
                 {showAmount && (
                   <th className="py-0.5 pl-1 text-right whitespace-nowrap">Amt</th>
@@ -212,26 +212,26 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
               {visibleItems.map((item, idx) => (
                 <tr key={item.id || idx} className={`${is58mm ? 'text-xs' : 'text-sm'}`}>
                   {showIndex && (
-                    <td className="py-0.5 pr-1 text-center align-top">{idx + 1}</td>
+                    <td className="py-1.5 pr-1 text-center align-top">{idx + 1}</td>
                   )}
                   {showItem && (
-                    <td className="py-0.5 px-0.5 text-left align-top font-medium break-words">
+                    <td className="py-1.5 px-0.5 text-left align-top font-medium break-words">
                       {item.description}
                     </td>
                   )}
                   {showQty && (
-                    <td className="py-0.5 px-1 text-center align-top whitespace-nowrap">
+                    <td className="py-1.5 pl-1 pr-2 text-center align-top whitespace-nowrap">
                       {item.quantity}
-                      {settings.showProductUnit !== false && item.unit ? ` ${item.unit}` : ''}
+                      {settings.showProductUnit !== false && item.unit ? ` ${item.unit === 'Piece' ? 'Pcs' : item.unit}` : ''}
                     </td>
                   )}
                   {showRate && (
-                    <td className="py-0.5 px-1 text-right align-top whitespace-nowrap">
+                    <td className="py-1.5 pl-2 pr-1 text-right align-top whitespace-nowrap">
                       {item.rate}
                     </td>
                   )}
                   {showAmount && (
-                    <td className="py-0.5 pl-1 text-right align-top font-bold whitespace-nowrap">
+                    <td className="py-1.5 pl-1 text-right align-top font-bold whitespace-nowrap">
                       {item.amount}
                     </td>
                   )}

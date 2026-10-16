@@ -46,8 +46,8 @@ export function renderInvoicePrint(
       <tr style="border-bottom: 1px solid #000000; font-weight: bold;">
         ${showIndex ? `<th style="padding: 2px 2px; text-align: center; width: 18px;">#</th>` : ''}
         ${showItem ? `<th style="padding: 2px 2px; text-align: left;">Item</th>` : ''}
-        ${showQty ? `<th style="padding: 2px 2px; text-align: center; white-space: nowrap;">Qty</th>` : ''}
-        ${showRate ? `<th style="padding: 2px 2px; text-align: right; white-space: nowrap;">Rate</th>` : ''}
+        ${showQty ? `<th style="padding: 2px 8px 2px 2px; text-align: center; white-space: nowrap;">Qty</th>` : ''}
+        ${showRate ? `<th style="padding: 2px 2px 2px 8px; text-align: right; white-space: nowrap;">Rate</th>` : ''}
         ${showAmount ? `<th style="padding: 2px 2px; text-align: right; white-space: nowrap;">Amt</th>` : ''}
       </tr>
     `;
@@ -56,11 +56,11 @@ export function renderInvoicePrint(
       .map(
         (it, idx) => `
         <tr style="border-bottom: 1px dotted #000000; font-size: ${isThermal58 ? '12px' : '14px'};">
-          ${showIndex ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top;">${idx + 1}</td>` : ''}
-          ${showItem ? `<td style="padding: 2px 2px; text-align: left; vertical-align: top; word-break: break-word;">${it.description}</td>` : ''}
-          ${showQty ? `<td style="padding: 2px 2px; text-align: center; vertical-align: top; white-space: nowrap;">${it.quantity}${settings.showProductUnit !== false && it.unit ? ` ${it.unit}` : ''}</td>` : ''}
-          ${showRate ? `<td style="padding: 2px 2px; text-align: right; vertical-align: top; white-space: nowrap;">${it.rate}</td>` : ''}
-          ${showAmount ? `<td style="padding: 2px 2px; text-align: right; vertical-align: top; font-weight: bold; white-space: nowrap;">${it.amount}</td>` : ''}
+          ${showIndex ? `<td style="padding: 5px 2px; text-align: center; vertical-align: top;">${idx + 1}</td>` : ''}
+          ${showItem ? `<td style="padding: 5px 2px; text-align: left; vertical-align: top; word-break: break-word;">${it.description}</td>` : ''}
+          ${showQty ? `<td style="padding: 5px 8px 5px 2px; text-align: center; vertical-align: top; white-space: nowrap;">${it.quantity}${settings.showProductUnit !== false && it.unit ? ` ${it.unit === 'Piece' ? 'Pcs' : it.unit}` : ''}</td>` : ''}
+          ${showRate ? `<td style="padding: 5px 2px 5px 8px; text-align: right; vertical-align: top; white-space: nowrap;">${it.rate}</td>` : ''}
+          ${showAmount ? `<td style="padding: 5px 2px; text-align: right; vertical-align: top; font-weight: bold; white-space: nowrap;">${it.amount}</td>` : ''}
         </tr>
       `
       )
