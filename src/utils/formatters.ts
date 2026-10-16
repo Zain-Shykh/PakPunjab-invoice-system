@@ -114,6 +114,16 @@ export function getCurrentTimeString(): string {
 }
 
 /**
+ * Format a stored HH:mm time as 12-hour with AM/PM (e.g. 19:28 -> 7:28 PM)
+ */
+export function formatTime(time?: string): string {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time || '');
+  if (!m) return time || '';
+  const h = Number(m[1]);
+  return `${h % 12 || 12}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+}
+
+/**
  * Generate unique IDs
  */
 export function generateId(prefix: string = 'id'): string {

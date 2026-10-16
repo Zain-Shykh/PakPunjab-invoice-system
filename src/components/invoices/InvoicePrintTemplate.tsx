@@ -1,6 +1,6 @@
 import React from 'react';
 import { CompanySettings, Invoice, InvoiceSettings } from '../../types';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatCurrency, formatDate, formatTime } from '../../utils/formatters';
 import { getProducts, getVisibleInvoiceItems } from '../../db/storage';
 
 interface InvoicePrintTemplateProps {
@@ -156,14 +156,14 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
             <span className="font-bold">INV #: {invoice.invoiceNo}</span>
             {settings.showDateTime && (
               <span>
-                {formatDate(invoice.date)} {invoice.time}
+                {formatDate(invoice.date)} {formatTime(invoice.time)}
               </span>
             )}
           </div>
           <div className="flex justify-between">
             <span>Customer:</span>
             <span className={`font-bold truncate ${is58mm ? 'max-w-[120px]' : 'max-w-[190px]'}`}>
-              {invoice.partyName}
+              {invoice.partyName || 'Walk-in Customer'}
             </span>
           </div>
           {settings.showCustomerPhone && invoice.partyPhone && (
@@ -500,7 +500,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
                 <p>Date: <strong className="text-slate-900">{formatDate(invoice.date)}</strong></p>
               )}
               {settings.showDateTime && invoice.time && (
-                <p>Time: <strong className="text-slate-900">{invoice.time}</strong></p>
+                <p>Time: <strong className="text-slate-900">{formatTime(invoice.time)}</strong></p>
               )}
               <p>
                 Status:{' '}
@@ -527,7 +527,7 @@ export const InvoicePrintTemplate: React.FC<InvoicePrintTemplateProps> = ({
           <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">
             Billed To:
           </span>
-          <h3 className="text-sm font-bold text-slate-900 mt-0.5">{invoice.partyName}</h3>
+          <h3 className="text-sm font-bold text-slate-900 mt-0.5">{invoice.partyName || 'Walk-in Customer'}</h3>
           {settings.showAddress && invoice.partyAddress && (
             <p className="text-slate-600 text-xs mt-0.5">{invoice.partyAddress}</p>
           )}

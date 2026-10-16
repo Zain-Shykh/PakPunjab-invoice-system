@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CompanySettings, Invoice, InvoiceSettings, Party } from '../types';
-import { formatCurrency, formatDate, getTodayDateString } from './formatters';
+import { formatCurrency, formatDate, formatTime, getTodayDateString } from './formatters';
 import { getProducts, getVisibleInvoiceItems } from '../db/storage';
 import {
   copyImageToClipboard,
@@ -84,11 +84,11 @@ export function renderInvoicePrint(
         <div style="border-bottom: 1px dashed #000000; padding-bottom: 6px; margin-bottom: 6px; font-size: ${isThermal58 ? '10px' : '12px'};">
           <div style="display: flex; justify-content: space-between;">
             <span style="font-weight: bold;">INV #: ${invoice.invoiceNo}</span>
-            <span>${formatDate(invoice.date)} ${invoice.time || ''}</span>
+            <span>${formatDate(invoice.date)} ${formatTime(invoice.time)}</span>
           </div>
           <div style="display: flex; justify-content: space-between; margin-top: 2px;">
             <span>Customer:</span>
-            <span style="font-weight: bold; max-width: ${isThermal58 ? '120px' : '190px'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${invoice.partyName}</span>
+            <span style="font-weight: bold; max-width: ${isThermal58 ? '120px' : '190px'}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${invoice.partyName || 'Walk-in Customer'}</span>
           </div>
           ${invoice.partyPhone ? `<div style="display: flex; justify-content: space-between;"><span>Phone:</span><span>${invoice.partyPhone}</span></div>` : ''}
         </div>
@@ -198,7 +198,7 @@ export function renderInvoicePrint(
               TAX INVOICE
             </div>
             <div style="font-family: monospace; font-size: 14px; font-weight: bold; color: #581c87; margin-top: 4px;">#${invoice.invoiceNo}</div>
-            <div style="font-size: 11px; color: #475569; margin-top: 2px;">Date: <strong>${formatDate(invoice.date)}</strong> ${invoice.time || ''}</div>
+            <div style="font-size: 11px; color: #475569; margin-top: 2px;">Date: <strong>${formatDate(invoice.date)}</strong> ${formatTime(invoice.time)}</div>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export function renderInvoicePrint(
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-start; font-size: 11px;">
           <div>
             <div style="font-size: 9px; text-transform: uppercase; font-weight: bold; color: #64748b; letter-spacing: 0.5px;">BILLED TO:</div>
-            <div style="font-size: 15px; font-weight: 900; color: #0f172a; margin-top: 2px;">${invoice.partyName}</div>
+            <div style="font-size: 15px; font-weight: 900; color: #0f172a; margin-top: 2px;">${invoice.partyName || 'Walk-in Customer'}</div>
             ${invoice.partyPhone ? `<div style="color: #475569; margin-top: 2px;">Phone: <strong>${invoice.partyPhone}</strong></div>` : ''}
             ${invoice.partyAddress ? `<div style="color: #475569; margin-top: 1px;">Address: ${invoice.partyAddress}</div>` : ''}
           </div>
@@ -393,7 +393,7 @@ export async function generateInvoicePdf(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
-  doc.text(`Date: ${formatDate(invoice.date)} ${invoice.time || ''}`, pageWidth - 14, startY + 17, { align: 'right' });
+  doc.text(`Date: ${formatDate(invoice.date)} ${formatTime(invoice.time)}`, pageWidth - 14, startY + 17, { align: 'right' });
 
   // Divider
   startY = 35;
@@ -416,7 +416,7 @@ export async function generateInvoicePdf(
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text(invoice.partyName, 18, startY + 10.5);
+  doc.text(invoice.partyName || 'Walk-in Customer', 18, startY + 10.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
